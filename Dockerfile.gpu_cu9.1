@@ -2,11 +2,10 @@ FROM nvidia/cuda:9.1-base-centos7
 
 ENV PYTHON_VERSION=3.9
 ENV POETRY_VENV=/app/.venv
-
 #RUN yum -y install epel-release \
   # RUN yum localinstall -y --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm \
   #RUN rm -R /etc/yum.repos.d && mkdir /etc/yum.repos.d \  
-  RUN yum -y update && yum -y install make wget gcc openssl-devel bzip2-devel libffi-devel zlib-devel xz-devel 
+  RUN ulimit -n 1024000 && yum -y update && yum -y install make wget gcc openssl-devel bzip2-devel libffi-devel zlib-devel xz-devel 
 
 RUN wget https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tgz   \
     && tar xzf Python-3.9.0.tgz \
