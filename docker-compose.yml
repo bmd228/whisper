@@ -1,0 +1,26 @@
+version: "3.4"
+services:
+  api:
+    container_name: whisper
+    image: whisper:gpu111nc
+    ports:
+      - "9011:9000"
+
+    volumes:
+    #  - ./model/:/root/.cache/whisper
+      - ./model/:/root/.cache/whisper
+      - ./data-gym-cache:/tmp/data-gym-cache
+    # args:
+    # MODE: base
+    #args:
+     # -ASR_MODEL: base
+    environment:
+     - ASR_MODEL=base
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+#--gpus al

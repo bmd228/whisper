@@ -1,0 +1,37 @@
+FROM nvidia/cuda:9.1-base-centos7
+
+ENV PYTHON_VERSION=3.9
+ENV POETRY_VENV=/app/.venv
+
+#RUN yum -y install epel-release \
+  # RUN yum localinstall -y --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm \
+  #RUN rm -R /etc/yum.repos.d && mkdir /etc/yum.repos.d \  
+  RUN yum -y update && yum -y install make wget gcc openssl-devel bzip2-devel libffi-devel zlib-devel xz-devel 
+
+RUN wget https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tgz   \
+    && tar xzf Python-3.9.0.tgz \
+    && cd Python-3.9.0\
+    && ./configure --enable-optimizations \
+    && make altinstall \
+    && rm ../Python-3.9.0.tgz \
+    && pip3.7 install virtualenv \
+    && yum localinstall -y --nogpgcheck http://mirror.docker.ru/epel/epel-release-latest-7.noarch.rpm \
+    && yum localinstall -y --nogpgcheck https://download1.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm \
+    && yum -y install ffmpeg ffmpeg-devel
+
+
+
+RUN python3.9 -m venv $POETRY_VENV \
+    && $POETRY_VENV/bin/pip install  --upgrade pip   \
+    && $POETRY_VENV/bin/pip install  poetry
+
+ENV PATH="${PATH}:${POETRY_VENV}/bin"
+
+WORKDIR /app
+
+COPY . /app
+
+RUN poetry config virtualenvs.in-project true
+RUN poetry install &&  $POETRY_VENV/bin/pip install -f https://download.pytorch.org/whl/cu90/torch-1.1.0-cp37-cp37m-linux_x86_64.whl --no-cache-dir
+
+ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:9000", "--workers", "1", "--timeout", "0", "app.webservice:app", "-k", "uvicorn.workers.UvicornWorker"]
